@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 
 interface ChatMessage {
    role: 'user' | 'bot';
@@ -10,6 +10,14 @@ interface ChatMessagesProps {
 }
 
 const ChatMessages: React.FC<ChatMessagesProps> = ({ messages }) => {
+   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+   useEffect(() => {
+      if (messagesEndRef.current) {
+         messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
+   }, [messages]);
+
    return (
       <div>
          {messages.map((message, index) => (
@@ -24,6 +32,7 @@ const ChatMessages: React.FC<ChatMessagesProps> = ({ messages }) => {
                </span>
             </div>
          ))}
+         <div ref={messagesEndRef} />
       </div>
    );
 };

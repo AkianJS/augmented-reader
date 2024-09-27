@@ -52,10 +52,10 @@ export default function AugmentedPdfChat() {
 
    return (
       <main className="flex h-screen bg-gray-900 p-4">
-         <Card className="w-1/3 mr-4 bg-gray-800 border-gray-700">
-            <CardContent className="p-4">
+         <Card className="w-1/3 mr-4 h-80 bg-gray-800 border-gray-700">
+            <CardContent className="p-4 h-full">
                <PdfDropzone onDrop={onDrop} isDragActive={!file} />
-               <ScrollArea className="h-[calc(100vh-200px)] mt-4">
+               <ScrollArea className="h-full mt-4">
                   <div className="mb-4 p-2 border border-gray-600 rounded bg-gray-700 text-center text-white">
                      {file ? '1/1' : '0/1'}
                   </div>
