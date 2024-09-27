@@ -6,40 +6,47 @@ import { Card, CardContent } from '@/components/ui/card';
 import { FileIcon, SendIcon, XIcon } from 'lucide-react';
 import PdfDropzone from './PdfDropzone';
 import ChatMessages from './ChatMessages';
-import { removeFileFromList, createFormData } from '@/lib/utils';
+import TypingLoader from './TypingLoader';
+import { createFormData } from '@/lib/utils';
 
 export default function AugmentedPdfChat() {
-   const [files, setFiles] = useState<File[]>([]);
-   const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'bot'; content: string }[]>(
-      []
-   );
+   const [file, setFile] = useState<File | null>(null);
+   const [chatMessages, setChatMessages] = useState<
+      { role: 'user' | 'bot'; content: string }[]
+   >([]);
    const [inputMessage, setInputMessage] = useState('');
+   const [isLoading, setIsLoading] = useState(false);
 
    const onDrop = useCallback((acceptedFiles: File[]) => {
-      setFiles((prevFiles) => {
-         const newFiles = [...prevFiles, ...acceptedFiles].slice(0, 3);
-         return newFiles.filter(
-            (file, index, self) => index === self.findIndex((t) => t.name === file.name)
-         );
-      });
+      if (acceptedFiles.length > 0) {
+         setFile(acceptedFiles[0]);
+      }
    }, []);
 
-   const removeFile = (fileName: string) => {
-      setFiles((prevFiles) => removeFileFromList(prevFiles, fileName));
+   const removeFile = () => {
+      setFile(null);
    };
 
    const handleSendMessage = async () => {
-      if (inputMessage.trim() && files.length > 0) {
+      if (inputMessage.trim() && file) {
          setInputMessage('');
-         setChatMessages((prev) => [...prev, { role: 'user', content: inputMessage }]);
-         const formData = createFormData(inputMessage, files);
+         setChatMessages((prev) => [
+            ...prev,
+            { role: 'user', content: inputMessage },
+         ]);
+         setIsLoading(true);
+         const formData = createFormData(inputMessage, file);
 
          const response = await fetch('/api/pdf', {
             method: 'POST',
             body: formData,
          }).then((res) => res.json());
 
-         setChatMessages((prev) => [...prev, { role: 'bot', content: response.message }]);
+         setChatMessages((prev) => [
+            ...prev,
+            { role: 'bot', content: response.message },
+         ]);
+         setIsLoading(false);
       }
    };
 
@@ -47,12 +54,12 @@ export default function AugmentedPdfChat() {
       <main className="flex h-screen bg-gray-900 p-4">
          <Card className="w-1/3 mr-4 bg-gray-800 border-gray-700">
             <CardContent className="p-4">
-               <PdfDropzone onDrop={onDrop} isDragActive={files.length < 3} />
+               <PdfDropzone onDrop={onDrop} isDragActive={!file} />
                <ScrollArea className="h-[calc(100vh-200px)] mt-4">
                   <div className="mb-4 p-2 border border-gray-600 rounded bg-gray-700 text-center text-white">
-                     {files.length}/3
+                     {file ? '1/1' : '0/1'}
                   </div>
-                  {files.map((file) => (
+                  {file && (
                      <div
                         key={file.name}
                         className="flex items-center justify-between bg-gray-700 p-2 rounded mb-2"
@@ -61,11 +68,15 @@ export default function AugmentedPdfChat() {
                            <FileIcon className="mr-2" />
                            <span>{file.name}</span>
                         </div>
-                        <Button variant="ghost" size="icon" onClick={() => removeFile(file.name)}>
+                        <Button
+                           variant="ghost"
+                           size="icon"
+                           onClick={removeFile}
+                        >
                            <XIcon className="h-4 w-4" />
                         </Button>
                      </div>
-                  ))}
+                  )}
                </ScrollArea>
             </CardContent>
          </Card>
@@ -73,6 +84,7 @@ export default function AugmentedPdfChat() {
             <CardContent className="flex flex-col h-full p-4">
                <ScrollArea className="flex-1 mb-4">
                   <ChatMessages messages={chatMessages} />
+                  {isLoading && <TypingLoader />}
                </ScrollArea>
                <form
                   onSubmit={(e) => {

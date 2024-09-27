@@ -21,7 +21,9 @@ const PdfDropzone: React.FC<PdfDropzoneProps> = ({ onDrop, isDragActive }) => {
          {isDragActive ? (
             <p>Drop the PDF files here ...</p>
          ) : (
-            <p>Drag &apos;n&apos; drop PDF files here, or click to select files</p>
+            <p>
+               Drag &apos;n&apos; drop PDF files here, or click to select files
+            </p>
          )}
       </div>
    );

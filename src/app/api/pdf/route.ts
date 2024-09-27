@@ -14,7 +14,8 @@ const systemTemplate = [
    `You are an assistant for question-answering tasks. `,
    `Use the following pieces of retrieved context to answer `,
    `the question. If you don't know the answer, say that you `,
-   `don't know. Keep the answer concise.`,
+   `don't know. Keep the answer concise. What you are receiving is an entire pdf document.`,
+   `But probably you won't have the context of all of it.`,
    `
 `,
    `{context}`,
@@ -49,7 +50,10 @@ export async function POST(req: NextRequest) {
       taskType: TaskType.RETRIEVAL_DOCUMENT,
       title: 'Document title',
    });
-   const vectorstore = await MemoryVectorStore.fromDocuments(splits, embeddings);
+   const vectorstore = await MemoryVectorStore.fromDocuments(
+      splits,
+      embeddings
+   );
 
    const retriever = vectorstore.asRetriever();
 
@@ -58,7 +62,10 @@ export async function POST(req: NextRequest) {
       ['human', '{input}'],
    ]);
 
-   const questionAnswerChain = await createStuffDocumentsChain({ llm: model, prompt });
+   const questionAnswerChain = await createStuffDocumentsChain({
+      llm: model,
+      prompt,
+   });
    const ragChain = await createRetrievalChain({
       retriever,
       combineDocsChain: questionAnswerChain,
